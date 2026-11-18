@@ -27,7 +27,6 @@ namespace filter_wolvy;
  * @covers    \filter_wolvy\viewer
  */
 final class token_test extends \advanced_testcase {
-
     /** Secret of Wolvy's published test vector (docs.wolvy.net/viewer-tokens/). */
     const SECRET = 'd80d15d09b7c0e56b4d787f6a212ed8bf8d53c761b6df521278f030cb12a7781';
 

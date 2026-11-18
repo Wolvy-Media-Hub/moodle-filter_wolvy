@@ -33,7 +33,6 @@ namespace filter_wolvy;
  * @license   https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class token {
-
     /** Shortest lifetime Wolvy accepts, in seconds. */
     const MIN_TTL = 60;
 

@@ -29,7 +29,6 @@ namespace filter_wolvy;
  * @license   https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class viewer {
-
     /** The template used when none is set. */
     const DEFAULT_TEMPLATE = 'moodle-{id}';
 
@@ -58,8 +57,8 @@ class viewer {
 
         // A template whose fields are empty for this user (an empty ID number,
         // say) must not leave everyone with the same blank or shared id.
-        if (trim(strtr($template, ['{id}' => '', '{username}' => '', '{email}' => '', '{idnumber}' => ''])) === $id
-                || $id === '') {
+        $literal = trim(strtr($template, ['{id}' => '', '{username}' => '', '{email}' => '', '{idnumber}' => '']));
+        if ($id === '' || $id === $literal) {
             $id = self::clean(strtr(self::DEFAULT_TEMPLATE, ['{id}' => (string) $user->id]));
         }
 

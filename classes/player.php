@@ -34,7 +34,6 @@ namespace filter_wolvy;
  * @license   https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class player {
-
     /**
      * Markup for one video, for the user viewing the page.
      *

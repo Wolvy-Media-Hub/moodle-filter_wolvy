@@ -26,7 +26,6 @@ namespace filter_wolvy;
  * @license   https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class admin_status {
-
     /**
      * HTML list of the checks and their results.
      *

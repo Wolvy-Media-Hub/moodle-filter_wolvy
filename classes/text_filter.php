@@ -28,7 +28,6 @@ namespace filter_wolvy;
  * @license   https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class text_filter extends \core_filters\text_filter {
-
     /** Where Wolvy serves embeds. */
     const EMBED_BASE = 'https://embed.wolvy.stream';
 

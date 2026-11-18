@@ -28,7 +28,6 @@ use filter_wolvy\admin\setting_accountid;
  * @covers    \filter_wolvy\admin\setting_accountid
  */
 final class setting_accountid_test extends \advanced_testcase {
-
     /**
      * A number, an embed address or embed code gives the number; anything else is kept for validation to refuse.
      */

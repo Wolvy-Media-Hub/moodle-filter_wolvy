@@ -29,7 +29,6 @@ namespace filter_wolvy\admin;
  * @license   https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class setting_accountid extends \admin_setting_configtext {
-
     /**
      * Store the number, whatever form it was given in.
      *

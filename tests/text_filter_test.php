@@ -27,7 +27,6 @@ namespace filter_wolvy;
  * @covers    \filter_wolvy\player
  */
 final class text_filter_test extends \advanced_testcase {
-
     /** Secret of Wolvy's published test vector. */
     const SECRET = 'd80d15d09b7c0e56b4d787f6a212ed8bf8d53c761b6df521278f030cb12a7781';
 
@@ -117,14 +116,15 @@ final class text_filter_test extends \advanced_testcase {
     public function test_tag_forms(): void {
         $this->setUser($this->getDataGenerator()->create_user());
 
-        foreach ([
+        $tags = [
             '[wolvy id="abc123"]',
             "[wolvy id='abc123']",
             '[wolvy id=&quot;abc123&quot;]',
             "[wolvy id=\u{201C}abc123\u{201D}]",
             '[wolvy id=abc123]',
             '[WOLVY ID="abc123"]',
-        ] as $tag) {
+        ];
+        foreach ($tags as $tag) {
             $this->assertStringContainsString('embed.wolvy.stream/abc123/', $this->run_filter($tag), $tag);
         }
 
@@ -147,7 +147,8 @@ final class text_filter_test extends \advanced_testcase {
         $this->assertSame('', $this->run_filter('[wolvy id="abc123"]'));
 
         $this->setAdminUser();
-        $this->assertStringContainsString(get_string('notconfigured', 'filter_wolvy'), $this->run_filter('[wolvy id="abc123"]'));
+        // The hint is HTML-escaped (the string contains ">").
+        $this->assertStringContainsString(s(get_string('notconfigured', 'filter_wolvy')), $this->run_filter('[wolvy id="abc123"]'));
     }
 
     /**
