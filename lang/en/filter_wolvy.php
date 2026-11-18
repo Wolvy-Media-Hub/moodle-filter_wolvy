@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $string['accountid'] = 'Wolvy account ID';
-$string['accountid_desc'] = 'The number of your Wolvy account, shown in the Wolvy dashboard. Every player address ends with it, so a wrong value gives players that fail to load.';
+$string['accountid_desc'] = 'The number of your Wolvy account. Paste the embed address or embed code of any of your videos (the video\'s Embed tab in the Wolvy dashboard) and the number is taken from it, or type the number. Every player address carries it, so a wrong value gives players that fail to load.';
 $string['aspect'] = 'Default shape';
 $string['aspect_desc'] = 'Width to height of the player when the tag does not say, for example [wolvy id="…" aspect="4:3"].';
 $string['defaulttitle'] = 'Wolvy video';

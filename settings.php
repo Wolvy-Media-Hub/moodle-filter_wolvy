@@ -31,7 +31,7 @@ if ($ADMIN->fulltree) {
         \filter_wolvy\admin_status::describe()
     ));
 
-    $settings->add(new admin_setting_configtext(
+    $settings->add(new \filter_wolvy\admin\setting_accountid(
         'filter_wolvy/accountid',
         get_string('accountid', 'filter_wolvy'),
         get_string('accountid_desc', 'filter_wolvy'),

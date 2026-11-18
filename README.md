@@ -36,7 +36,7 @@ Straight, single, typographic and HTML-encoded quotes all work, so the tag survi
 
 | Setting | Default | Notes |
 |---|---|---|
-| Wolvy account ID | — | Required. Nothing is shown until it is set; administrators see a hint |
+| Wolvy account ID | — | Required. Paste any video's embed address or embed code from the Wolvy dashboard (the number is taken from it), or type the number. Nothing is shown until it is set; administrators see a hint |
 | Viewer signing secret | — | 64 characters. Without it players carry no token, so the watermark cannot name the student |
 | Viewer ID template | `moodle-{id}` | `{id}`, `{username}`, `{email}`, `{idnumber}`. Cut to 64 bytes. Falls back to `moodle-{id}` when it comes out empty |
 | Token lifetime | 2 hours | Must outlast the longest video a student watches in one sitting. Wolvy accepts up to 24 hours |
