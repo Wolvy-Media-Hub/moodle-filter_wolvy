@@ -65,7 +65,7 @@ class player {
                 return self::login_notice();
             }
         } else {
-            $vt = self::token_for_current_user();
+            $vt = self::token_for_current_user($videoid);
         }
 
         return self::iframe(self::embed_url($videoid, $accountid, $vt), $atts);
@@ -81,11 +81,12 @@ class player {
     }
 
     /**
-     * A token for the user viewing the page.
+     * A token for the user viewing the page, for one video only.
      *
+     * @param string $videoid Wolvy video id the token plays.
      * @return string '' when the site has no signing secret.
      */
-    public static function token_for_current_user(): string {
+    public static function token_for_current_user(string $videoid): string {
         global $USER;
 
         $secret = trim((string) get_config('filter_wolvy', 'signingsecret'));
@@ -96,7 +97,7 @@ class player {
         $viewerid = viewer::id_for($USER, (string) get_config('filter_wolvy', 'viewerid'));
         $ttl = (int) (get_config('filter_wolvy', 'tokenlifetime') ?: 7200);
 
-        return token::make($viewerid, $ttl, $secret);
+        return token::make($viewerid, $videoid, $ttl, $secret);
     }
 
     /**

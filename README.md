@@ -6,7 +6,7 @@ Put a protected [Wolvy](https://wolvy.net) video anywhere Moodle shows text (a P
 [wolvy id="a1b2c3d4e5f60718293a"]
 ```
 
-Each player carries a viewer token signed on your Moodle server for the student watching. The video's watermark shows that student, and Wolvy records the viewing session against them. A pasted `<iframe>` cannot do this: its address is the same for everyone. Moodle also strips iframes from text written by users who are not trusted, while a tag survives.
+Each player carries a viewer token signed on your Moodle server for the student watching and for that video only. The video's watermark shows that student, and Wolvy records the viewing session against them. Since 1.1.0 each token names its video, which Wolvy requires: a token copied out of one course cannot open a video of another. A pasted `<iframe>` cannot do this: its address is the same for everyone. Moodle also strips iframes from text written by users who are not trusted, while a tag survives.
 
 For an activity that is marked complete when the student has watched enough, see the Wolvy video activity (`mod_wolvy`), which uses this filter's settings.
 
