@@ -35,8 +35,9 @@ final class token_test extends \advanced_testcase {
      */
     public function test_published_vector(): void {
         $this->assertSame(
-            'eyJ2aWQiOiJ1c2VyLTg4MTMiLCJleHAiOjE3OTAwMDAwMDB9.XBNWyMiuLw0y7WlQkzO5s2N-eI8Ltxhs4N0uvDHM4ZM',
-            token::sign('user-8813', 1790000000, self::SECRET)
+            'eyJ2aWQiOiJ1c2VyLTg4MTMiLCJleHAiOjE3OTAwMDAwMDAsInZpZGVvIjoiYTFiMmMzZDRlNWY2MDcxODI5M2EifQ'
+                . '.KPYNjR-agijPtfv9s1VbBOSs_QJmi3NMlQ7tsUXCY9M',
+            token::sign('user-8813', 'a1b2c3d4e5f60718293a', 1790000000, self::SECRET)
         );
         $this->assertTrue(token::self_test());
     }
@@ -45,7 +46,7 @@ final class token_test extends \advanced_testcase {
      * A token Wolvy's verifier would accept: payload, signature, expiry.
      */
     public function test_made_token_verifies(): void {
-        $vt = token::make('moodle-42', 7200, self::SECRET);
+        $vt = token::make('moodle-42', 'a1b2c3d4e5f60718293a', 7200, self::SECRET);
         [$payload, $sig] = explode('.', $vt);
 
         $this->assertSame(
@@ -56,6 +57,8 @@ final class token_test extends \advanced_testcase {
         $data = json_decode(base64_decode(strtr($payload, '-_', '+/')), true);
         $this->assertSame('moodle-42', $data['vid']);
         $this->assertEqualsWithDelta(time() + 7200, $data['exp'], 5);
+        $this->assertSame('a1b2c3d4e5f60718293a', $data['video']);
+        $this->assertSame(['vid', 'exp', 'video'], array_keys($data));
     }
 
     /**
@@ -67,10 +70,12 @@ final class token_test extends \advanced_testcase {
             return json_decode(base64_decode(strtr($payload, '-_', '+/')), true)['exp'];
         };
 
-        $this->assertEqualsWithDelta(time() + 86400, $exp(token::make('a', 999999, self::SECRET)), 5);
-        $this->assertEqualsWithDelta(time() + 60, $exp(token::make('a', 1, self::SECRET)), 5);
-        $this->assertSame('', token::make('a', 3600, ''));
-        $this->assertSame('', token::make('', 3600, self::SECRET));
+        $this->assertEqualsWithDelta(time() + 86400, $exp(token::make('a', 'vid1', 999999, self::SECRET)), 5);
+        $this->assertEqualsWithDelta(time() + 60, $exp(token::make('a', 'vid1', 1, self::SECRET)), 5);
+        $this->assertSame('', token::make('a', 'vid1', 3600, ''));
+        $this->assertSame('', token::make('', 'vid1', 3600, self::SECRET));
+        // Wolvy refuses a token that names no video, so none is made.
+        $this->assertSame('', token::make('a', '', 3600, self::SECRET));
     }
 
     /**

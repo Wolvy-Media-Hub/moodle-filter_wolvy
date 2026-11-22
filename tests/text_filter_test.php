@@ -89,6 +89,23 @@ final class text_filter_test extends \advanced_testcase {
     }
 
     /**
+     * Each token names the video of its player: Wolvy refuses a token that names
+     * no video, or another one (since 22 November 2026).
+     */
+    public function test_each_player_gets_a_token_for_its_video(): void {
+        $this->setUser($this->getDataGenerator()->create_user());
+
+        $html = $this->run_filter('[wolvy id="a1b2c3d4e5f60718293a"] [wolvy id="Lesson_2-b"]');
+        preg_match_all('~\?vt=([A-Za-z0-9_\-.%]+)~', $html, $m);
+        $this->assertCount(2, $m[1]);
+        $videos = array_map(function (string $vt): string {
+            $payload = explode('.', rawurldecode($vt))[0];
+            return json_decode(base64_decode(strtr($payload, '-_', '+/')), true)['video'];
+        }, $m[1]);
+        $this->assertSame(['a1b2c3d4e5f60718293a', 'Lesson_2-b'], $videos);
+    }
+
+    /**
      * Visitors who are not logged in get the configured behaviour, never a token.
      */
     public function test_guests(): void {
