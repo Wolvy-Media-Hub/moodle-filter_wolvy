@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
-
 /**
  * The course page "Wolvy video tags": makes the [wolvy] tag for one video in
  * this course, with the key that lets its players carry a viewer token.
