@@ -25,10 +25,14 @@ namespace filter_wolvy;
  * @license   https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers    \filter_wolvy\text_filter
  * @covers    \filter_wolvy\player
+ * @covers    \filter_wolvy\tag
  */
 final class text_filter_test extends \advanced_testcase {
     /** Secret of Wolvy's published test vector. */
     const SECRET = 'd80d15d09b7c0e56b4d787f6a212ed8bf8d53c761b6df521278f030cb12a7781';
+
+    /** @var \stdClass The course the text is shown in. */
+    private $course;
 
     /**
      * Configure the filter.
@@ -40,17 +44,30 @@ final class text_filter_test extends \advanced_testcase {
         set_config('signingsecret', self::SECRET, 'filter_wolvy');
         set_config('viewerid', 'moodle-{id}', 'filter_wolvy');
         set_config('guests', 'message', 'filter_wolvy');
+        $this->course = $this->getDataGenerator()->create_course();
     }
 
     /**
      * Run the filter on some text.
      *
      * @param string $text Text.
+     * @param \context|null $context Where the text is shown; default the test course.
      * @return string
      */
-    private function run_filter(string $text): string {
-        $filter = new text_filter(\context_system::instance(), []);
+    private function run_filter(string $text, ?\context $context = null): string {
+        $filter = new text_filter($context ?? \context_course::instance($this->course->id), []);
         return $filter->filter($text);
+    }
+
+    /**
+     * A tag made on the course page, with its key.
+     *
+     * @param string $videoid Video id.
+     * @param int|null $courseid Course it is made for; default the test course.
+     * @return string
+     */
+    private function tagged(string $videoid, ?int $courseid = null): string {
+        return tag::make($videoid, $courseid ?? (int) $this->course->id);
     }
 
     /**
@@ -75,7 +92,7 @@ final class text_filter_test extends \advanced_testcase {
         $two = $this->getDataGenerator()->create_user();
 
         $this->setUser($one);
-        $html = $this->run_filter('<p>[wolvy id="a1b2c3d4e5f60718293a"]</p>');
+        $html = $this->run_filter('<p>' . $this->tagged('a1b2c3d4e5f60718293a') . '</p>');
         $this->assertStringContainsString('https://embed.wolvy.stream/a1b2c3d4e5f60718293a/NDI=?vt=', $html);
         $this->assertStringContainsString('encrypted-media', $html);
         $this->assertStringContainsString('referrerpolicy="strict-origin-when-cross-origin"', $html);
@@ -84,7 +101,7 @@ final class text_filter_test extends \advanced_testcase {
         $this->assertSame('moodle-' . $one->id, $this->token_payload($html)['vid']);
 
         $this->setUser($two);
-        $html = $this->run_filter('<p>[wolvy id="a1b2c3d4e5f60718293a"]</p>');
+        $html = $this->run_filter('<p>' . $this->tagged('a1b2c3d4e5f60718293a') . '</p>');
         $this->assertSame('moodle-' . $two->id, $this->token_payload($html)['vid']);
     }
 
@@ -95,7 +112,7 @@ final class text_filter_test extends \advanced_testcase {
     public function test_each_player_gets_a_token_for_its_video(): void {
         $this->setUser($this->getDataGenerator()->create_user());
 
-        $html = $this->run_filter('[wolvy id="a1b2c3d4e5f60718293a"] [wolvy id="Lesson_2-b"]');
+        $html = $this->run_filter($this->tagged('a1b2c3d4e5f60718293a') . ' ' . $this->tagged('Lesson_2-b'));
         preg_match_all('~\?vt=([A-Za-z0-9_\-.%]+)~', $html, $m);
         $this->assertCount(2, $m[1]);
         $videos = array_map(function (string $vt): string {
@@ -178,5 +195,75 @@ final class text_filter_test extends \advanced_testcase {
         $html = $this->run_filter('[wolvy id="abc123"]');
         $this->assertStringContainsString('<iframe', $html);
         $this->assertNull($this->token_payload($html));
+    }
+
+    /**
+     * Only a tag made for this video and this course carries a token: anyone can type a tag,
+     * and a student must not sign themselves into a video (MMR-677, issue 2).
+     */
+    public function test_only_keyed_tags_get_a_token(): void {
+        $this->setUser($this->getDataGenerator()->create_user());
+        $other = $this->getDataGenerator()->create_course();
+        $page = $this->getDataGenerator()->create_module('page', ['course' => $this->course->id]);
+        $video = 'a1b2c3d4e5f60718293a';
+
+        $this->assertSame($video, $this->token_payload($this->run_filter($this->tagged($video)))['video']);
+        $this->assertNotNull(
+            $this->token_payload($this->run_filter($this->tagged($video), \context_module::instance($page->cmid))),
+            'an activity in the course is the same course'
+        );
+
+        $refused = [
+            'typed by hand' => '[wolvy id="' . $video . '"]',
+            'a made-up key' => '[wolvy id="' . $video . '" key="AAAAAAAAAAAAAAAAAAAAAA"]',
+            'another course\'s key' => $this->tagged($video, (int) $other->id),
+            'another video\'s key' => str_replace('Lesson_2-b', $video, $this->tagged('Lesson_2-b')),
+        ];
+        foreach ($refused as $label => $tag) {
+            $html = $this->run_filter($tag);
+            $this->assertStringContainsString('<iframe', $html, $label);
+            $this->assertNull($this->token_payload($html), $label);
+        }
+
+        // A profile or the dashboard is in no course: no tag gets a token there.
+        $user = $this->getDataGenerator()->create_user();
+        $this->assertNull($this->token_payload($this->run_filter($this->tagged($video), \context_user::instance($user->id))));
+    }
+
+    /**
+     * People who can make tags are told when a tag plays without a token; students are not.
+     */
+    public function test_hint_for_teachers(): void {
+        $teacher = $this->getDataGenerator()->create_and_enrol($this->course, 'editingteacher');
+        $student = $this->getDataGenerator()->create_and_enrol($this->course, 'student');
+        $hint = s(get_string('unsignedtag', 'filter_wolvy'));
+
+        $this->setUser($teacher);
+        $this->assertStringContainsString($hint, $this->run_filter('[wolvy id="abc123"]'));
+        $this->assertStringNotContainsString($hint, $this->run_filter($this->tagged('abc123')));
+
+        $this->setUser($student);
+        $this->assertStringNotContainsString($hint, $this->run_filter('[wolvy id="abc123"]'));
+    }
+
+    /**
+     * Teachers and managers may make tags; students may not.
+     */
+    public function test_capability(): void {
+        $context = \context_course::instance($this->course->id);
+        $teacher = $this->getDataGenerator()->create_and_enrol($this->course, 'editingteacher');
+        $student = $this->getDataGenerator()->create_and_enrol($this->course, 'student');
+
+        $this->assertTrue(has_capability(tag::CAPABILITY, $context, $teacher));
+        $this->assertFalse(has_capability(tag::CAPABILITY, $context, $student));
+    }
+
+    /**
+     * The activity passes a video a teacher chose: it still signs without a tag key.
+     */
+    public function test_activity_render_still_signs(): void {
+        $this->setUser($this->getDataGenerator()->create_user());
+        $this->assertSame('abc123', $this->token_payload(player::render('abc123'))['video']);
+        $this->assertNull($this->token_payload(player::render('abc123', [], false)));
     }
 }

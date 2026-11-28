@@ -39,9 +39,11 @@ class player {
      *
      * @param string $videoid Wolvy video id, already validated.
      * @param array $atts Tag attributes (aspect, title).
+     * @param bool $sign Sign a viewer token for the user. The filter passes false for a tag
+     *                   without a valid key; the activity, whose video a teacher set, leaves it true.
      * @return string HTML; '' when nothing should be shown.
      */
-    public static function render(string $videoid, array $atts = []): string {
+    public static function render(string $videoid, array $atts = [], bool $sign = true): string {
         $accountid = (int) get_config('filter_wolvy', 'accountid');
 
         if ($accountid <= 0) {
@@ -64,7 +66,7 @@ class player {
             if ($guests !== 'unsigned') {
                 return self::login_notice();
             }
-        } else {
+        } else if ($sign) {
             $vt = self::token_for_current_user($videoid);
         }
 

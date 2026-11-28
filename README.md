@@ -1,9 +1,9 @@
 # Wolvy video filter for Moodle (`filter_wolvy`)
 
-Put a protected [Wolvy](https://wolvy.net) video anywhere Moodle shows text (a Page, a Label, a quiz question, a forum post) with one tag:
+Put a protected [Wolvy](https://wolvy.net) video anywhere Moodle shows text in a course (a Page, a Label, a quiz question, a forum post) with one tag, made on the course page *Wolvy video tags*:
 
 ```
-[wolvy id="a1b2c3d4e5f60718293a"]
+[wolvy id="a1b2c3d4e5f60718293a" key="pX3v0bR8mWk2Qe7LcT1aYg"]
 ```
 
 Each player carries a viewer token signed on your Moodle server for the student watching and for that video only. The video's watermark shows that student, and Wolvy records the viewing session against them. Since 1.1.0 each token names its video, which Wolvy requires: a token copied out of one course cannot open a video of another. A pasted `<iframe>` cannot do this: its address is the same for everyone. Moodle also strips iframes from text written by users who are not trusted, while a tag survives.
@@ -24,11 +24,23 @@ For an activity that is marked complete when the student has watched enough, see
 
 ## The tag
 
+Make it in the course: *More > Wolvy video tags* (needs the capability `filter/wolvy:embed`, given to editing teachers and managers). Paste a video ID or embed address from the Wolvy dashboard and copy the tag into any text in that course.
+
 | Attribute | Required | Example | Meaning |
 |---|---|---|---|
 | `id` | yes | `id="a1b2c3d4e5f60718293a"` | The video's ID in Wolvy |
+| `key` | for a viewer token | `key="pX3v0bR8mWk2Qe7LcT1aYg"` | Made on the *Wolvy video tags* page for this video and this course |
 | `aspect` | no | `aspect="4:3"` | Width to height; the default is set in the filter settings |
 | `title` | no | `title="Lesson 1"` | Accessible name of the player |
+
+**Only a tag with a valid key gets a viewer token** (since 1.2.0). Anyone who can post text, a student in a forum or their profile, can type a tag; without this rule they could sign themselves into any video of the account, also one from a course they have left. So:
+
+- a tag typed by hand, a tag from before 1.2.0, or a tag copied into another course plays **without** a viewer token: its watermark cannot name the viewer, and Wolvy refuses it if your account requires signed viewers (Wolvy dashboard: *Settings > Watermark*, "Refuse playback without a verified viewer ID"; recommended);
+- people who can make tags see a note above such a player;
+- the key is an HMAC of the course and video with a random site key made on install. It is not the Wolvy signing secret, so rotating that secret leaves every tag working;
+- text outside a course (a user profile, the dashboard) never gets a token.
+
+**Upgrading from 1.1.0 or earlier:** make each tag again on the course's *Wolvy video tags* page and replace the old one. The Wolvy video activity (`mod_wolvy`) is not affected: a teacher sets its video in the activity settings.
 
 Straight, single, typographic and HTML-encoded quotes all work, so the tag survives whatever your text editor does to it. A tag alone in a paragraph replaces the paragraph.
 
