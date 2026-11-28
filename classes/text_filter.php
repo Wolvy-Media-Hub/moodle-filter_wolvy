@@ -23,6 +23,11 @@ namespace filter_wolvy;
  * viewing the page, so the watermark shows that student. A pasted iframe
  * cannot do that: its URL is the same for everyone.
  *
+ * Only a tag with a key made for this video and this course (see tag) gets a
+ * token. Anyone can type a tag, so without the key a student could sign
+ * themselves into any video of the account, including one from a course
+ * they have left.
+ *
  * @package   filter_wolvy
  * @copyright 2026 Wolvy <https://wolvy.net>
  * @license   https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -75,7 +80,16 @@ class text_filter extends \core_filters\text_filter {
             return $match[0];
         }
 
-        return player::render($videoid, $atts);
+        $signed = tag::verify($videoid, tag::course_of($this->context), (string) ($atts['key'] ?? ''));
+        $html = player::render($videoid, $atts, $signed);
+
+        // Tell the people who can fix a tag that it plays without a token, for
+        // example one written before 1.2.0 or copied from another course.
+        if (!$signed && $html !== '' && !player::is_guest() && has_capability(tag::CAPABILITY, $this->context)) {
+            $html = \html_writer::div(s(get_string('unsignedtag', 'filter_wolvy')), 'filter-wolvy-notice alert alert-info') . $html;
+        }
+
+        return $html;
     }
 
     /**

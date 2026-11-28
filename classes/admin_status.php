@@ -56,6 +56,8 @@ class admin_status {
         $host = parse_url($CFG->wwwroot, PHP_URL_HOST) ?: $CFG->wwwroot;
         $items[] = get_string('status_domain', 'filter_wolvy', $host);
 
+        $items[] = get_string('status_tags', 'filter_wolvy');
+
         return \html_writer::alist(array_map('s', $items));
     }
 }

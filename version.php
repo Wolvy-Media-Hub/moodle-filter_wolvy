@@ -25,8 +25,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'filter_wolvy';
-$plugin->version = 2026112200;
-$plugin->release = '1.1.0';
+$plugin->version = 2026112800;
+$plugin->release = '1.2.0';
 $plugin->requires = 2024100700; // Moodle 4.5, the first with \core_filters\text_filter.
 $plugin->supported = [405, 503]; // Moodle 4.5 (LTS) to 5.3 (LTS).
 $plugin->maturity = MATURITY_STABLE;
